@@ -45,13 +45,14 @@ interface CardProps {
   product: Product
   color: string
   ratio: string
+  mobile?: boolean
   onAddToCart: () => void
 }
 
-function Card({ product, color, ratio, onAddToCart }: CardProps) {
+function Card({ product, color, ratio, mobile, onAddToCart }: CardProps) {
   return (
     <div className="group">
-      <div className="relative overflow-hidden" style={{ aspectRatio: ratio }}>
+      <div className="relative overflow-hidden" style={{ aspectRatio: mobile ? '4/3' : ratio }}>
         <div
           className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           style={{ backgroundColor: color }}
@@ -60,7 +61,7 @@ function Card({ product, color, ratio, onAddToCart }: CardProps) {
           <p
             className="text-center px-8 leading-[1.2] font-light tracking-[-0.02em] select-none"
             style={{
-              fontSize: 'clamp(13px, 2vw, 24px)',
+              fontSize: mobile ? '16px' : 'clamp(13px, 2vw, 24px)',
               color: 'rgba(0,0,0,0.22)',
             }}
           >
@@ -68,7 +69,7 @@ function Card({ product, color, ratio, onAddToCart }: CardProps) {
           </p>
           <p
             className="mt-2 tracking-[0.04em] select-none"
-            style={{ fontSize: 'clamp(11px, 1vw, 12px)', color: 'rgba(0,0,0,0.15)' }}
+            style={{ fontSize: mobile ? '12px' : 'clamp(11px, 1vw, 12px)', color: 'rgba(0,0,0,0.15)' }}
           >
             ₩{product.price.toLocaleString()}
           </p>
@@ -79,36 +80,53 @@ function Card({ product, color, ratio, onAddToCart }: CardProps) {
         )}
       </div>
 
-      <div className="pt-4 pb-14 flex items-start justify-between gap-4">
-        <div className="min-w-0">
+      {/* Text below frame */}
+      {mobile ? (
+        <div className="pt-4 pb-10 px-1">
           <Link href={`/shop/${product.id}`}>
-            <p className="text-[13px] tracking-[-0.01em] text-[#0b0b0b] leading-[1.4]">
+            <p className="text-[18px] font-bold leading-[1.2] text-[#0b0b0b] tracking-[-0.02em]">
               {product.name}
             </p>
           </Link>
-          <p className="text-[11px] text-[#bbb] mt-1 tracking-[0.01em]">
-            {CATEGORY_KR[product.category] ?? product.category} · ₩{product.price.toLocaleString()}
+          <p className="text-[12px] text-[#aaa] mt-2 tracking-[0.01em]">
+            {CATEGORY_KR[product.category] ?? product.category}
+          </p>
+          <p className="text-[13px] text-[#0b0b0b] mt-1 font-bold">
+            ₩{product.price.toLocaleString()}
           </p>
         </div>
+      ) : (
+        <div className="pt-4 pb-14 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <Link href={`/shop/${product.id}`}>
+              <p className="text-[13px] tracking-[-0.01em] text-[#0b0b0b] leading-[1.4]">
+                {product.name}
+              </p>
+            </Link>
+            <p className="text-[11px] text-[#bbb] mt-1 tracking-[0.01em]">
+              {CATEGORY_KR[product.category] ?? product.category} · ₩{product.price.toLocaleString()}
+            </p>
+          </div>
 
-        <button
-          onClick={onAddToCart}
-          disabled={product.stock === 0}
-          className="shrink-0 text-[10px] font-bold tracking-[0.07em] uppercase border border-[#0b0b0b] bg-white text-[#0b0b0b] px-3 py-1 mt-0.5 hover:bg-[#0b0b0b] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
-          style={{ opacity: 0, transition: 'opacity 0.2s, background-color 0.15s, color 0.15s' }}
-          ref={(el) => {
-            if (!el) return
-            const card = el.closest('.group')
-            if (!card) return
-            const show = () => { el.style.opacity = '1' }
-            const hide = () => { el.style.opacity = '0' }
-            card.addEventListener('mouseenter', show)
-            card.addEventListener('mouseleave', hide)
-          }}
-        >
-          {product.stock === 0 ? '품절' : '+ CART'}
-        </button>
-      </div>
+          <button
+            onClick={onAddToCart}
+            disabled={product.stock === 0}
+            className="shrink-0 text-[10px] font-bold tracking-[0.07em] uppercase border border-[#0b0b0b] bg-white text-[#0b0b0b] px-3 py-1 mt-0.5 hover:bg-[#0b0b0b] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{ opacity: 0, transition: 'opacity 0.2s, background-color 0.15s, color 0.15s' }}
+            ref={(el) => {
+              if (!el) return
+              const card = el.closest('.group')
+              if (!card) return
+              const show = () => { el.style.opacity = '1' }
+              const hide = () => { el.style.opacity = '0' }
+              card.addEventListener('mouseenter', show)
+              card.addEventListener('mouseleave', hide)
+            }}
+          >
+            {product.stock === 0 ? '품절' : '+ CART'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -129,72 +147,76 @@ export default function ShopGrid({ products }: { products: Product[] }) {
     pi++
   }
 
+  const col = (i: number, baseOffset: number) => COLORS[(baseOffset + i) % COLORS.length]
+
   return (
-    <div className="px-4 lg:px-10 pt-6 lg:pt-10">
-      {blocks.map((block, bi) => {
-        const col = (i: number) => COLORS[(block.offset + i) % COLORS.length]
-        const card = (p: Product, i: number, ratio: string) => (
+    <>
+      {/* Mobile: single column full-width */}
+      <div className="lg:hidden px-5 pt-6">
+        {products.map((p, i) => (
           <Card
             key={p.id}
             product={p}
-            color={col(i)}
-            ratio={ratio}
+            color={col(i, 0)}
+            ratio="4/3"
+            mobile
             onAddToCart={() => p.stock > 0 && addItem(p)}
           />
-        )
+        ))}
+      </div>
 
-        switch (block.pattern) {
-          case 'full':
-            return (
-              <div key={bi}>
-                {card(block.slice[0], 0, RATIOS.full)}
-              </div>
-            )
+      {/* Desktop: pattern grid */}
+      <div className="hidden lg:block px-10 pt-10">
+        {blocks.map((block, bi) => {
+          const card = (p: Product, i: number, ratio: string) => (
+            <Card
+              key={p.id}
+              product={p}
+              color={col(i, block.offset)}
+              ratio={ratio}
+              onAddToCart={() => p.stock > 0 && addItem(p)}
+            />
+          )
 
-          case 'two-equal':
-            return (
-              <div key={bi} className="grid grid-cols-2 gap-x-3 lg:gap-x-8">
-                {block.slice.map((p, i) => (
-                  <div key={p.id}>{card(p, i, RATIOS.equal)}</div>
-                ))}
-              </div>
-            )
+          switch (block.pattern) {
+            case 'full':
+              return <div key={bi}>{card(block.slice[0], 0, RATIOS.full)}</div>
 
-          case 'left-wide':
-            return (
-              <div key={bi} className="grid grid-cols-3 gap-x-3 lg:gap-x-8">
-                <div className="col-span-2">{card(block.slice[0], 0, RATIOS.wide)}</div>
-                {block.slice[1] && (
-                  <div className="col-span-1">{card(block.slice[1], 1, RATIOS.narrow)}</div>
-                )}
-              </div>
-            )
+            case 'two-equal':
+              return (
+                <div key={bi} className="grid grid-cols-2 gap-x-8">
+                  {block.slice.map((p, i) => <div key={p.id}>{card(p, i, RATIOS.equal)}</div>)}
+                </div>
+              )
 
-          case 'right-wide':
-            return (
-              <div key={bi} className="grid grid-cols-3 gap-x-3 lg:gap-x-8">
-                {block.slice[0] && (
-                  <div className="col-span-1">{card(block.slice[0], 0, RATIOS.narrow)}</div>
-                )}
-                {block.slice[1] && (
-                  <div className="col-span-2">{card(block.slice[1], 1, RATIOS.wide)}</div>
-                )}
-              </div>
-            )
+            case 'left-wide':
+              return (
+                <div key={bi} className="grid grid-cols-3 gap-x-8">
+                  <div className="col-span-2">{card(block.slice[0], 0, RATIOS.wide)}</div>
+                  {block.slice[1] && <div className="col-span-1">{card(block.slice[1], 1, RATIOS.narrow)}</div>}
+                </div>
+              )
 
-          case 'three-col':
-            return (
-              <div key={bi} className="grid grid-cols-3 gap-x-3 lg:gap-x-8">
-                {block.slice.map((p, i) => (
-                  <div key={p.id}>{card(p, i, RATIOS.small)}</div>
-                ))}
-              </div>
-            )
+            case 'right-wide':
+              return (
+                <div key={bi} className="grid grid-cols-3 gap-x-8">
+                  {block.slice[0] && <div className="col-span-1">{card(block.slice[0], 0, RATIOS.narrow)}</div>}
+                  {block.slice[1] && <div className="col-span-2">{card(block.slice[1], 1, RATIOS.wide)}</div>}
+                </div>
+              )
 
-          default:
-            return null
-        }
-      })}
-    </div>
+            case 'three-col':
+              return (
+                <div key={bi} className="grid grid-cols-3 gap-x-8">
+                  {block.slice.map((p, i) => <div key={p.id}>{card(p, i, RATIOS.small)}</div>)}
+                </div>
+              )
+
+            default:
+              return null
+          }
+        })}
+      </div>
+    </>
   )
 }
