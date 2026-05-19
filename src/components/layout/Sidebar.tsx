@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/lib/cart-store'
 
 const NAV = [
+  { label: 'HOME', href: '/' },
   { label: 'SHOP', href: '/shop' },
   { label: 'ABOUT', href: '/about' },
   { label: 'LOGIN', href: '/login' },
