@@ -26,7 +26,15 @@ export default async function ShopPage({ searchParams }: Props) {
     if (category && category !== 'all') query = query.eq('category', category)
     if (q) query = query.ilike('name', `%${q}%`)
     const { data } = await query
-    products = (data as Product[]) ?? []
+    const fetched = (data as Product[]) ?? []
+    if (fetched.length > 0) {
+      products = fetched
+    } else {
+      let mock = MOCK_PRODUCTS
+      if (category && category !== 'all') mock = mock.filter((p) => p.category === category)
+      if (q) mock = mock.filter((p) => p.name.includes(q))
+      products = mock
+    }
   } catch {
     let mock = MOCK_PRODUCTS
     if (category && category !== 'all') mock = mock.filter((p) => p.category === category)
