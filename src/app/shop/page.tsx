@@ -1,108 +1,63 @@
-import { createClient } from "@/lib/supabase/server";
-import ProductCard from "@/components/product/ProductCard";
-import { Product } from "@/types";
-import { CATEGORY_LABEL } from "@/lib/utils";
-import { MOCK_PRODUCTS } from "@/lib/mock-data";
+import { createClient } from '@/lib/supabase/server'
+import { Product } from '@/types'
+import { MOCK_PRODUCTS } from '@/lib/mock-data'
+import ShopGrid from './ShopGrid'
 
 interface Props {
-  searchParams: Promise<{ category?: string; q?: string }>;
+  searchParams: Promise<{ category?: string; q?: string }>
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  indoor: '실내식물',
+  outdoor: '실외식물',
+  succulent: '다육식물',
 }
 
 export default async function ShopPage({ searchParams }: Props) {
-  const { category, q } = await searchParams;
-  let products: Product[] = [];
+  const { category, q } = await searchParams
+  let products: Product[] = []
 
   try {
-    const supabase = await createClient();
-    let query = supabase.from("products").select("*").order("created_at", { ascending: false });
-    if (category && category !== "all") query = query.eq("category", category);
-    if (q) query = query.ilike("name", `%${q}%`);
-    const { data } = await query;
-    products = (data as Product[]) ?? [];
+    const supabase = await createClient()
+    let query = supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
+    if (category && category !== 'all') query = query.eq('category', category)
+    if (q) query = query.ilike('name', `%${q}%`)
+    const { data } = await query
+    products = (data as Product[]) ?? []
   } catch {
     let mock = MOCK_PRODUCTS
-    if (category && category !== "all") mock = mock.filter((p) => p.category === category)
+    if (category && category !== 'all') mock = mock.filter((p) => p.category === category)
     if (q) mock = mock.filter((p) => p.name.includes(q))
     products = mock
   }
 
-  const categories = ["all", "indoor", "outdoor", "succulent"];
-
-  const currentLabel = category ? CATEGORY_LABEL[category] ?? "전체" : "전체";
+  const currentLabel = category ? (CATEGORY_LABELS[category] ?? 'SHOP') : 'SHOP'
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
-      <div className="mb-10">
-        <h1 className="text-xs tracking-[0.3em] text-stone-400 mb-2">SHOP</h1>
-        <p className="text-stone-800 text-lg font-light">{currentLabel}</p>
+    <div className="min-h-screen">
+      {/* Page title row */}
+      <div className="flex items-baseline justify-between px-10 pt-8 pb-8 border-b border-[#e5e5e5]">
+        <h1 className="text-[13px] font-bold tracking-[0.06em] uppercase text-[#0b0b0b]">
+          {currentLabel}
+        </h1>
+        <p className="text-[11px] tracking-[0.05em] uppercase text-[#aaa]">
+          {products.length} ITEMS
+        </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Sidebar filter */}
-        <aside className="md:w-44 shrink-0">
-          <p className="text-xs tracking-widest text-stone-400 mb-4">FILTER</p>
-          <ul className="space-y-2">
-            {categories.map((cat) => {
-              const isActive = (!category && cat === "all") || category === cat;
-              return (
-                <li key={cat}>
-                  <a
-                    href={cat === "all" ? "/shop" : `/shop?category=${cat}`}
-                    className={`block text-sm py-1 transition-colors ${
-                      isActive
-                        ? "text-stone-900 font-medium"
-                        : "text-stone-500 hover:text-stone-800"
-                    }`}
-                  >
-                    {CATEGORY_LABEL[cat]}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-
-          <form className="mt-8">
-            <p className="text-xs tracking-widest text-stone-400 mb-3">SEARCH</p>
-            <div className="flex gap-1">
-              <input
-                name="q"
-                defaultValue={q}
-                placeholder="검색"
-                className="flex-1 px-3 py-2 text-xs border border-stone-300 focus:outline-none focus:border-stone-600 w-full"
-              />
-            </div>
-            {category && (
-              <input type="hidden" name="category" value={category} />
-            )}
-            <button
-              type="submit"
-              className="mt-2 w-full py-2 text-xs bg-stone-800 text-white hover:bg-stone-700 transition-colors"
-            >
-              검색
-            </button>
-          </form>
-        </aside>
-
-        {/* Product grid */}
-        <div className="flex-1">
-          {products.length === 0 ? (
-            <div className="text-center py-20 text-stone-400 text-sm">
-              상품이 없습니다.
-            </div>
-          ) : (
-            <>
-              <p className="text-xs text-stone-400 mb-6">
-                총 {products.length}개
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </>
-          )}
+      {/* Product grid */}
+      {products.length === 0 ? (
+        <div className="flex items-center justify-center h-[60vh]">
+          <p className="text-[11px] tracking-[0.06em] uppercase text-[#aaa]">
+            상품이 없습니다.
+          </p>
         </div>
-      </div>
+      ) : (
+        <ShopGrid products={products} />
+      )}
     </div>
-  );
+  )
 }
