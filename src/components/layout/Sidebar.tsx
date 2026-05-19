@@ -22,7 +22,7 @@ export default function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="fixed top-0 left-0 h-full w-[300px] bg-white z-50 flex flex-col px-8 py-7">
+    <aside className="hidden lg:flex fixed top-0 left-0 h-full w-[300px] bg-white z-50 flex-col px-8 py-7">
       {/* Top nav */}
       <nav className="flex flex-col">
         {NAV.map(({ label, href }) => (

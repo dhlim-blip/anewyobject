@@ -47,7 +47,7 @@ export default async function ShopPage({ searchParams }: Props) {
   return (
     <div className="min-h-screen">
       {/* Page title row */}
-      <div className="flex items-baseline justify-between px-10 pt-8 pb-8 border-b border-[#e5e5e5]">
+      <div className="flex items-baseline justify-between px-5 lg:px-10 pt-6 lg:pt-8 pb-6 lg:pb-8 border-b border-[#e5e5e5]">
         <h1 className="text-[13px] font-bold tracking-[0.06em] uppercase text-[#0b0b0b]">
           {currentLabel}
         </h1>

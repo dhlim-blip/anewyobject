@@ -130,7 +130,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
   }
 
   return (
-    <div className="px-10 pt-10">
+    <div className="px-4 lg:px-10 pt-6 lg:pt-10">
       {blocks.map((block, bi) => {
         const col = (i: number) => COLORS[(block.offset + i) % COLORS.length]
         const card = (p: Product, i: number, ratio: string) => (
@@ -153,7 +153,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
           case 'two-equal':
             return (
-              <div key={bi} className="grid grid-cols-2 gap-x-8">
+              <div key={bi} className="grid grid-cols-2 gap-x-3 lg:gap-x-8">
                 {block.slice.map((p, i) => (
                   <div key={p.id}>{card(p, i, RATIOS.equal)}</div>
                 ))}
@@ -162,7 +162,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
           case 'left-wide':
             return (
-              <div key={bi} className="grid grid-cols-3 gap-x-8">
+              <div key={bi} className="grid grid-cols-3 gap-x-3 lg:gap-x-8">
                 <div className="col-span-2">{card(block.slice[0], 0, RATIOS.wide)}</div>
                 {block.slice[1] && (
                   <div className="col-span-1">{card(block.slice[1], 1, RATIOS.narrow)}</div>
@@ -172,7 +172,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
           case 'right-wide':
             return (
-              <div key={bi} className="grid grid-cols-3 gap-x-8">
+              <div key={bi} className="grid grid-cols-3 gap-x-3 lg:gap-x-8">
                 {block.slice[0] && (
                   <div className="col-span-1">{card(block.slice[0], 0, RATIOS.narrow)}</div>
                 )}
@@ -184,7 +184,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
           case 'three-col':
             return (
-              <div key={bi} className="grid grid-cols-3 gap-x-8">
+              <div key={bi} className="grid grid-cols-3 gap-x-3 lg:gap-x-8">
                 {block.slice.map((p, i) => (
                   <div key={p.id}>{card(p, i, RATIOS.small)}</div>
                 ))}

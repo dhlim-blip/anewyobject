@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Roboto } from 'next/font/google'
 import './globals.css'
 import Sidebar from '@/components/layout/Sidebar'
+import MobileHeader from '@/components/layout/MobileHeader'
 import Footer from '@/components/layout/Footer'
 import CartHydration from '@/components/CartHydration'
 
@@ -30,9 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko" className={roboto.className}>
       <body className="min-h-screen bg-white text-[#0b0b0b] antialiased">
         <CartHydration />
+        <MobileHeader />
         <div className="flex min-h-screen">
           <Sidebar />
-          <div className="ml-[300px] flex-1 flex flex-col min-w-0">
+          <div className="pt-[52px] lg:pt-0 lg:ml-[300px] flex-1 flex flex-col min-w-0">
             {children}
             <Footer />
           </div>
