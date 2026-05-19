@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { useCartStore } from '@/lib/cart-store'
+import { createClient } from '@/lib/supabase/client'
 
 const NAV = [
   { label: 'HOME', href: '/' },
@@ -14,8 +15,20 @@ const NAV = [
 
 export default function MobileHeader() {
   const [open, setOpen] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
   const count = useCartStore((s) => s.totalCount())
   const pathname = usePathname()
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data }) => {
+      setLoggedIn(!!data.session)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(!!session)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   return (
     <>
@@ -32,12 +45,21 @@ export default function MobileHeader() {
         >
           A NEW OBJECT
         </Link>
-        <Link
-          href="/cart"
-          className="text-[11px] font-bold tracking-[0.06em] uppercase text-[#0b0b0b]"
-        >
-          CART ({count})
-        </Link>
+        {loggedIn ? (
+          <Link
+            href="/cart"
+            className="text-[11px] font-bold tracking-[0.06em] uppercase text-[#0b0b0b]"
+          >
+            CART ({count})
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="text-[11px] font-bold tracking-[0.06em] uppercase text-[#0b0b0b]"
+          >
+            LOGIN
+          </Link>
+        )}
       </header>
 
       {/* Drawer overlay */}
@@ -73,13 +95,23 @@ export default function MobileHeader() {
           ))}
         </nav>
         <div className="flex-1 flex items-end pb-4">
-          <Link
-            href="/cart"
-            onClick={() => setOpen(false)}
-            className="text-[13px] font-bold tracking-[0.05em] uppercase text-[#0b0b0b] hover:opacity-40 transition-opacity duration-150"
-          >
-            CART ({count})
-          </Link>
+          {loggedIn ? (
+            <Link
+              href="/cart"
+              onClick={() => setOpen(false)}
+              className="text-[13px] font-bold tracking-[0.05em] uppercase text-[#0b0b0b] hover:opacity-40 transition-opacity duration-150"
+            >
+              CART ({count})
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
+              className="text-[13px] font-bold tracking-[0.05em] uppercase text-[#0b0b0b] hover:opacity-40 transition-opacity duration-150"
+            >
+              LOGIN
+            </Link>
+          )}
         </div>
       </div>
     </>
