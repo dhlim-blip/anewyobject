@@ -16,7 +16,6 @@ const CATEGORY_KR: Record<string, string> = {
   succulent: '다육식물',
 }
 
-// Pattern sequence — varies layout as you scroll
 type Pattern = 'full' | 'two-equal' | 'left-wide' | 'right-wide' | 'three-col'
 
 const PATTERNS: { type: Pattern; count: number }[] = [
@@ -34,13 +33,12 @@ const PATTERNS: { type: Pattern; count: number }[] = [
   { type: 'left-wide',  count: 2 },
 ]
 
-// Aspect ratios per context
 const RATIOS: Record<string, string> = {
-  full:    '16/7',
-  wide:    '16/9',
-  narrow:  '4/5',
-  equal:   '3/4',
-  small:   '4/5',
+  full:   '16/7',
+  wide:   '16/9',
+  narrow: '3/4',
+  equal:  '4/5',
+  small:  '4/5',
 }
 
 interface CardProps {
@@ -53,26 +51,24 @@ interface CardProps {
 function Card({ product, color, ratio, onAddToCart }: CardProps) {
   return (
     <div className="group">
-      {/* Frame (image placeholder) */}
       <div className="relative overflow-hidden" style={{ aspectRatio: ratio }}>
         <div
-          className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           style={{ backgroundColor: color }}
         />
-        {/* Placeholder title inside frame */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-[5]">
           <p
-            className="text-center px-6 leading-[1.2] font-light tracking-[-0.02em] select-none"
+            className="text-center px-8 leading-[1.2] font-light tracking-[-0.02em] select-none"
             style={{
-              fontSize: 'clamp(14px, 2.5vw, 28px)',
-              color: 'rgba(0,0,0,0.25)',
+              fontSize: 'clamp(13px, 2vw, 24px)',
+              color: 'rgba(0,0,0,0.22)',
             }}
           >
             {product.name}
           </p>
           <p
             className="mt-2 tracking-[0.04em] select-none"
-            style={{ fontSize: 'clamp(11px, 1vw, 13px)', color: 'rgba(0,0,0,0.18)' }}
+            style={{ fontSize: 'clamp(11px, 1vw, 12px)', color: 'rgba(0,0,0,0.15)' }}
           >
             ₩{product.price.toLocaleString()}
           </p>
@@ -83,15 +79,14 @@ function Card({ product, color, ratio, onAddToCart }: CardProps) {
         )}
       </div>
 
-      {/* Text below image */}
-      <div className="pt-3 pb-12 flex items-start justify-between gap-3">
+      <div className="pt-4 pb-14 flex items-start justify-between gap-4">
         <div className="min-w-0">
           <Link href={`/shop/${product.id}`}>
-            <p className="text-[14px] tracking-[-0.02em] text-[#0b0b0b] leading-[1.3]">
+            <p className="text-[13px] tracking-[-0.01em] text-[#0b0b0b] leading-[1.4]">
               {product.name}
             </p>
           </Link>
-          <p className="text-[12px] text-[#aaa] mt-1 tracking-[-0.01em]">
+          <p className="text-[11px] text-[#bbb] mt-1 tracking-[0.01em]">
             {CATEGORY_KR[product.category] ?? product.category} · ₩{product.price.toLocaleString()}
           </p>
         </div>
@@ -121,7 +116,6 @@ function Card({ product, color, ratio, onAddToCart }: CardProps) {
 export default function ShopGrid({ products }: { products: Product[] }) {
   const addItem = useCartStore((s) => s.addItem)
 
-  // Slice products into layout blocks
   const blocks: { pattern: Pattern; slice: Product[]; offset: number }[] = []
   let offset = 0
   let pi = 0
@@ -136,7 +130,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
   }
 
   return (
-    <div>
+    <div className="px-10 pt-10">
       {blocks.map((block, bi) => {
         const col = (i: number) => COLORS[(block.offset + i) % COLORS.length]
         const card = (p: Product, i: number, ratio: string) => (
@@ -159,7 +153,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
           case 'two-equal':
             return (
-              <div key={bi} className="grid grid-cols-2 gap-x-[1px]">
+              <div key={bi} className="grid grid-cols-2 gap-x-8">
                 {block.slice.map((p, i) => (
                   <div key={p.id}>{card(p, i, RATIOS.equal)}</div>
                 ))}
@@ -168,7 +162,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
           case 'left-wide':
             return (
-              <div key={bi} className="grid grid-cols-3 gap-x-[1px]">
+              <div key={bi} className="grid grid-cols-3 gap-x-8">
                 <div className="col-span-2">{card(block.slice[0], 0, RATIOS.wide)}</div>
                 {block.slice[1] && (
                   <div className="col-span-1">{card(block.slice[1], 1, RATIOS.narrow)}</div>
@@ -178,7 +172,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
           case 'right-wide':
             return (
-              <div key={bi} className="grid grid-cols-3 gap-x-[1px]">
+              <div key={bi} className="grid grid-cols-3 gap-x-8">
                 {block.slice[0] && (
                   <div className="col-span-1">{card(block.slice[0], 0, RATIOS.narrow)}</div>
                 )}
@@ -190,7 +184,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
 
           case 'three-col':
             return (
-              <div key={bi} className="grid grid-cols-3 gap-x-[1px]">
+              <div key={bi} className="grid grid-cols-3 gap-x-8">
                 {block.slice.map((p, i) => (
                   <div key={p.id}>{card(p, i, RATIOS.small)}</div>
                 ))}
