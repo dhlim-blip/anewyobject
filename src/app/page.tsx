@@ -41,7 +41,14 @@ export default function Home() {
           {/* Hover overlay */}
           <div className="absolute inset-0 bg-[#0b0b0b] opacity-0 group-hover:opacity-[0.07] transition-opacity duration-300" />
 
-          {/* Label */}
+          {/* Center placeholder label */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <p className="text-[13px] font-light tracking-[0.06em] uppercase text-[#0b0b0b]/30 select-none">
+              {frame.label}
+            </p>
+          </div>
+
+          {/* Bottom label */}
           <div className="absolute bottom-7 left-7">
             <p className="text-[11px] font-bold tracking-[0.07em] uppercase text-[#0b0b0b] leading-[1.6]">
               {frame.label}

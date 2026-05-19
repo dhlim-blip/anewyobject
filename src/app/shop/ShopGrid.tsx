@@ -7,6 +7,7 @@ import { useCartStore } from '@/lib/cart-store'
 const COLORS = [
   '#d4cfc9', '#c5ccbb', '#cbbfb5', '#bbc6c6',
   '#d0c9b8', '#c0bbcc', '#c8c4bc', '#b8c4bc',
+  '#cac4ba', '#b8c8b8', '#c4bcc0', '#d0ccc0',
 ]
 
 const CATEGORY_KR: Record<string, string> = {
@@ -15,89 +16,191 @@ const CATEGORY_KR: Record<string, string> = {
   succulent: '다육식물',
 }
 
-interface Props {
-  products: Product[]
+// Pattern sequence — varies layout as you scroll
+type Pattern = 'full' | 'two-equal' | 'left-wide' | 'right-wide' | 'three-col'
+
+const PATTERNS: { type: Pattern; count: number }[] = [
+  { type: 'full',       count: 1 },
+  { type: 'two-equal',  count: 2 },
+  { type: 'left-wide',  count: 2 },
+  { type: 'two-equal',  count: 2 },
+  { type: 'full',       count: 1 },
+  { type: 'right-wide', count: 2 },
+  { type: 'three-col',  count: 3 },
+  { type: 'two-equal',  count: 2 },
+  { type: 'right-wide', count: 2 },
+  { type: 'full',       count: 1 },
+  { type: 'three-col',  count: 3 },
+  { type: 'left-wide',  count: 2 },
+]
+
+// Aspect ratios per context
+const RATIOS: Record<string, string> = {
+  full:    '16/7',
+  wide:    '16/9',
+  narrow:  '4/5',
+  equal:   '3/4',
+  small:   '4/5',
 }
 
-function CardImage({ color, href, wide = false }: { color: string; href: string; wide?: boolean }) {
-  return (
-    <div
-      className="relative overflow-hidden"
-      style={{ aspectRatio: wide ? '21/9' : '3/4' }}
-    >
-      <div
-        className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.04]"
-        style={{ backgroundColor: color }}
-      />
-      <Link href={href} className="absolute inset-0 z-10" />
-    </div>
-  )
+interface CardProps {
+  product: Product
+  color: string
+  ratio: string
+  onAddToCart: () => void
 }
 
-function CardInfo({ product, padX = 10 }: { product: Product; padX?: number }) {
-  const addItem = useCartStore((s) => s.addItem)
-  const catLabel = CATEGORY_KR[product.category] ?? product.category
-
+function Card({ product, color, ratio, onAddToCart }: CardProps) {
   return (
-    <div className={`pt-3 pb-14 flex items-start justify-between`} style={{ paddingLeft: padX * 4, paddingRight: padX * 4 }}>
-      <div>
-        <Link href={`/shop/${product.id}`}>
-          <p className="text-[14px] tracking-[-0.02em] text-[#0b0b0b] leading-[1.4]">
+    <div className="group">
+      {/* Frame (image placeholder) */}
+      <div className="relative overflow-hidden" style={{ aspectRatio: ratio }}>
+        <div
+          className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          style={{ backgroundColor: color }}
+        />
+        {/* Placeholder title inside frame */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-[5]">
+          <p
+            className="text-center px-6 leading-[1.2] font-light tracking-[-0.02em] select-none"
+            style={{
+              fontSize: 'clamp(14px, 2.5vw, 28px)',
+              color: 'rgba(0,0,0,0.25)',
+            }}
+          >
             {product.name}
           </p>
-        </Link>
-        <p className="text-[12px] text-[#aaa] mt-1 tracking-[-0.01em]">
-          {catLabel} · ₩{product.price.toLocaleString()}
-        </p>
+          <p
+            className="mt-2 tracking-[0.04em] select-none"
+            style={{ fontSize: 'clamp(11px, 1vw, 13px)', color: 'rgba(0,0,0,0.18)' }}
+          >
+            ₩{product.price.toLocaleString()}
+          </p>
+        </div>
+        <Link href={`/shop/${product.id}`} className="absolute inset-0 z-10" />
+        {product.stock === 0 && (
+          <div className="absolute inset-0 bg-white/40 z-20 pointer-events-none" />
+        )}
       </div>
 
-      <button
-        onClick={() => product.stock > 0 && addItem(product)}
-        disabled={product.stock === 0}
-        className="text-[10px] font-bold tracking-[0.07em] uppercase border border-[#0b0b0b] px-3 py-1 bg-white text-[#0b0b0b] hover:bg-[#0b0b0b] hover:text-white transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0 mt-0.5"
-      >
-        {product.stock === 0 ? '품절' : '+ CART'}
-      </button>
+      {/* Text below image */}
+      <div className="pt-3 pb-12 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link href={`/shop/${product.id}`}>
+            <p className="text-[14px] tracking-[-0.02em] text-[#0b0b0b] leading-[1.3]">
+              {product.name}
+            </p>
+          </Link>
+          <p className="text-[12px] text-[#aaa] mt-1 tracking-[-0.01em]">
+            {CATEGORY_KR[product.category] ?? product.category} · ₩{product.price.toLocaleString()}
+          </p>
+        </div>
+
+        <button
+          onClick={onAddToCart}
+          disabled={product.stock === 0}
+          className="shrink-0 text-[10px] font-bold tracking-[0.07em] uppercase border border-[#0b0b0b] bg-white text-[#0b0b0b] px-3 py-1 mt-0.5 hover:bg-[#0b0b0b] hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ opacity: 0, transition: 'opacity 0.2s, background-color 0.15s, color 0.15s' }}
+          ref={(el) => {
+            if (!el) return
+            const card = el.closest('.group')
+            if (!card) return
+            const show = () => { el.style.opacity = '1' }
+            const hide = () => { el.style.opacity = '0' }
+            card.addEventListener('mouseenter', show)
+            card.addEventListener('mouseleave', hide)
+          }}
+        >
+          {product.stock === 0 ? '품절' : '+ CART'}
+        </button>
+      </div>
     </div>
   )
 }
 
-export default function ShopGrid({ products }: Props) {
-  if (products.length === 0) return null
+export default function ShopGrid({ products }: { products: Product[] }) {
+  const addItem = useCartStore((s) => s.addItem)
 
-  const [first, ...rest] = products
+  // Slice products into layout blocks
+  const blocks: { pattern: Pattern; slice: Product[]; offset: number }[] = []
+  let offset = 0
+  let pi = 0
 
-  // Pair remaining products into rows of 2
-  const pairs: Product[][] = []
-  for (let i = 0; i < rest.length; i += 2) {
-    pairs.push(rest.slice(i, i + 2))
+  while (offset < products.length) {
+    const { type, count } = PATTERNS[pi % PATTERNS.length]
+    const slice = products.slice(offset, offset + count)
+    if (slice.length === 0) break
+    blocks.push({ pattern: type, slice, offset })
+    offset += slice.length
+    pi++
   }
 
   return (
     <div>
-      {/* First product — full width, landscape */}
-      <div className="group">
-        <CardImage color={COLORS[0]} href={`/shop/${first.id}`} wide />
-        <CardInfo product={first} padX={10} />
-      </div>
+      {blocks.map((block, bi) => {
+        const col = (i: number) => COLORS[(block.offset + i) % COLORS.length]
+        const card = (p: Product, i: number, ratio: string) => (
+          <Card
+            key={p.id}
+            product={p}
+            color={col(i)}
+            ratio={ratio}
+            onAddToCart={() => p.stock > 0 && addItem(p)}
+          />
+        )
 
-      {/* Rest — 2-column grid */}
-      {pairs.map((pair, rowIdx) => (
-        <div key={rowIdx} className="grid grid-cols-2 gap-x-[1px]">
-          {pair.map((product, colIdx) => {
-            const colorIdx = (rowIdx * 2 + colIdx + 1) % COLORS.length
+        switch (block.pattern) {
+          case 'full':
             return (
-              <div key={product.id} className="group">
-                <CardImage
-                  color={COLORS[colorIdx]}
-                  href={`/shop/${product.id}`}
-                />
-                <CardInfo product={product} padX={5} />
+              <div key={bi}>
+                {card(block.slice[0], 0, RATIOS.full)}
               </div>
             )
-          })}
-        </div>
-      ))}
+
+          case 'two-equal':
+            return (
+              <div key={bi} className="grid grid-cols-2 gap-x-[1px]">
+                {block.slice.map((p, i) => (
+                  <div key={p.id}>{card(p, i, RATIOS.equal)}</div>
+                ))}
+              </div>
+            )
+
+          case 'left-wide':
+            return (
+              <div key={bi} className="grid grid-cols-3 gap-x-[1px]">
+                <div className="col-span-2">{card(block.slice[0], 0, RATIOS.wide)}</div>
+                {block.slice[1] && (
+                  <div className="col-span-1">{card(block.slice[1], 1, RATIOS.narrow)}</div>
+                )}
+              </div>
+            )
+
+          case 'right-wide':
+            return (
+              <div key={bi} className="grid grid-cols-3 gap-x-[1px]">
+                {block.slice[0] && (
+                  <div className="col-span-1">{card(block.slice[0], 0, RATIOS.narrow)}</div>
+                )}
+                {block.slice[1] && (
+                  <div className="col-span-2">{card(block.slice[1], 1, RATIOS.wide)}</div>
+                )}
+              </div>
+            )
+
+          case 'three-col':
+            return (
+              <div key={bi} className="grid grid-cols-3 gap-x-[1px]">
+                {block.slice.map((p, i) => (
+                  <div key={p.id}>{card(p, i, RATIOS.small)}</div>
+                ))}
+              </div>
+            )
+
+          default:
+            return null
+        }
+      })}
     </div>
   )
 }
