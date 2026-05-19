@@ -22,14 +22,18 @@ function LoginForm() {
 
   async function handleSocialLogin(provider: 'google' | 'kakao') {
     setSocialLoading(provider)
+    setError('')
     const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
+    const { error: authError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=${redirect}`,
       },
     })
-    setSocialLoading(null)
+    if (authError) {
+      setError('소셜 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.')
+      setSocialLoading(null)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
