@@ -36,17 +36,6 @@ export default function Sidebar() {
           </Link>
         ))}
 
-        <div className="mt-5">
-          {CATEGORIES.map(({ label, href }) => (
-            <Link
-              key={href}
-              href={href}
-              className="block text-[13px] font-bold tracking-[0.05em] leading-[2.4] uppercase text-[#0b0b0b] transition-opacity duration-150 hover:opacity-40"
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
       </nav>
 
       {/* Brand name — vertically centered */}
